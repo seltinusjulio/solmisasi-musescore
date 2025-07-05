@@ -5,6 +5,7 @@ A MuseScore plugin that displays Indonesian numerical notation (solmisasi/not an
 ## Features
 
 - Displays numerical notation (solmisasi/not angka) above staff notes
+- Supports chromatic notes (sharps '/' and flats '\\' )
 - Supports multiple octaves with dot notation:
   - Standard octave (C4-B4): No dots
   - Higher octave (C5-B5): Single dot above note
@@ -19,21 +20,21 @@ A MuseScore plugin that displays Indonesian numerical notation (solmisasi/not an
 
 - MuseScore 3.x or 4.x
 - Download **Parnumation** font (recommended for optimal display)
-  - Parnumation 3.0 (original, created by Rikardo Lumbantobing):
+  - Parnumation **3.0** (original, created by Rikardo Lumbantobing):
   - Download from: https://gnibot.blogspot.com/2014/07/parnumation-3.html  
-  - Parnumation 3.1 (modified to display short lines _ above single quarter notes)
+  - Parnumation **3.1** (modified to display short lines _ above single quarter notes)
   - Available in this repo: https://github.com/seltinusjulio/solmisasi-musescore/
   - Install the font on your system for the best visual results
 
 ## Installation
 
-1. Download the plugin file (`solmisasi.qml`)
-2. Place it in your MuseScore plugins folder:
+1. Download the entire plugin files from this repo or `solmisasi-musescore.zip` from official MuseScore [plugin page](https://musescore.org/en/project/solmisasi)
+2. Place `solmisasi-musescore` folder in your MuseScore plugins folder:
    - **Windows**: `%USERPROFILE%\Documents\MuseScore3\Plugins` (or `MuseScore4\Plugins`)
    - **macOS**: `~/Documents/MuseScore3/Plugins` (or `MuseScore4/Plugins`)
    - **Linux**: `~/Documents/MuseScore3/Plugins` (or `MuseScore4/Plugins`)
 3. Restart MuseScore
-4. Enable the plugin in **Plugins → Plugin Manager**
+4. Enable the plugin in **Plugins → Plugin Manager** (or `Home` > `Plugins` for MuseScore Studio 4)
 
 ## Usage
 
@@ -45,17 +46,35 @@ A MuseScore plugin that displays Indonesian numerical notation (solmisasi/not an
 
 ## About Solmisasi
 
-Solmisasi (also known as "not angka" or numerical notation) is a popular music notation system in Indonesia where:
-- Do = 1
-- Re = 2
-- Mi = 3
-- Fa = 4
-- Sol = 5
-- La = 6
-- Ti = 7
+Solmisasi (also known as "not angka" or numerical notation) is a popular music notation system in Indonesia that replaces traditional Western note names with numbers. This system is widely used in Indonesian music education and music transcription both in traditional and modern context. It offers an intuitive way to read and write music using familiar numbers instead of Western letter names, making it particularly popular in schools and community music groups throughout Indonesia.
 
-This system is widely used in Indonesian music education and traditional music.
+### Numbered Notation
 
+Notes are indicated using numbers:
+- C = 1 (reads 'Do')
+- D = 2 (reads 'Re')
+- E = 3 (reads 'Mi')
+- F = 4 (reads 'Fa')
+- G = 5 (reads 'Sol')
+- A = 6 (reads 'La')
+- B = 7 (reads 'Si')
+
+### Octave Indication
+
+Different octaves are indicated using dots positioned above or below the numbers:
+- Standard octave (C4-B4): No dots
+- Higher octave (C5-B5): Single dot above note
+- Lower octave (C3-B3): Single dot below note
+- Two octaves higher (C6-B6): Double dots above note
+- Two octaves lower (C2-B2): Double dots below note
+
+### Chromatic Notation
+Chromatic notes (sharps and flats) are indicated by diagonal lines that cross through the numbers:
+
+- **Sharp notes** (`#`): Forward slash `/` crossing the number  
+- **Flat notes** (`♭`): Backslash `\` crossing the number
+
+The forward slash (`/`) indicates "naik setengah" (raised by a semitone), while the backslash (`\`) indicates "turun setengah" (lowered by a semitone).
 
 ## About Parnumation
 
@@ -79,6 +98,26 @@ The plugin uses MIDI pitch values to determine octave prefixes:
 - Other octaves: "?" prefix
 
 **Note**: The visual representation of dots above/below notes requires the Parnumation font for proper display. Without this font, the prefixes will appear as regular text characters.
+
+## Chromatic Notes 
+
+The plugin fully supports chromatic notes (sharps and flats) using Indonesian solmisasi notation.
+
+**Sharp notes** (raised by semitone) are indicated by a **forward slash (/)** overlaid on the number:
+- C# = /1
+- D# = /2
+- F# = /4
+- G# = /5
+- A# = /6
+
+**Flat notes** (lowered by semitone) are indicated by a **backslash (\\)** overlaid on the number:
+- D♭ = \2
+- E♭ = \3
+- G♭ = \5
+- A♭ = \6
+- B♭ = \7
+
+**Note**: When using the **Parnumation font**, these slash marks appear as proper overlays on the numbers, creating the authentic Indonesian solmisasi appearance. Without the Parnumation font, they will display as regular text characters (/1, /2, etc.).
 
 ## Credits
 
