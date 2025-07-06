@@ -24,7 +24,7 @@ import QtQuick 2.2
 import MuseScore 3.0
 
 MuseScore {
-   version: "1.1"
+   version: "1.2"
    description: "This plugin displays numerical notation (solmisasi) above staff notation. For full functionality, it requires the Parnumation font."
    menuPath: "Plugins.Notes." + "Solmisasi"
 
@@ -116,30 +116,31 @@ MuseScore {
            octavePrefix = "?";
          }
 
-// START: BELUM BERFUNGSI
-         let prefix = "";
-         let suffix = "";
-         const duration = notes[i].chord ? notes[i].chord.duration : 480;  // fallback quarter
-
+         let tiePrefix = "";
+         let durationPrefix = "";
+         let durationSuffix = "";
+         let tieSuffix = "";
+         const parentChord = notes[i].parent;
+         const duration = parentChord ? parentChord.duration.ticks : 480;
          const base = duration / 480;
-         switch (base) {
-            case 4: suffix = "..."; break;
-            case 2: suffix = "."; break;
-            case 1: break;
-            case 0.5: prefix = "J"; break;
-            case 0.25: prefix = "K"; break;
-            case 0.125: prefix = "L"; break;
-            default: suffix = "="; break;
-         }
-// END: BELUM BERFUNGSI
-
-         if (notes[i].tieForward)
-            suffix += "–"; 
 
          if (notes[i].tieBack)
-            prefix += "–"; 
+             tiePrefix = "~"; // bm
 
-         const finalNoteRepresentation = prefix + octavePrefix + name + suffix;
+         switch (base) {
+             case 4: durationSuffix = "..."; break;
+             case 2: durationSuffix = "."; break;
+             case 1: break;
+             case 0.5: durationPrefix = "J"; break;
+             case 0.25: durationPrefix = "K"; break;
+             case 0.125: durationPrefix = "L"; break;
+             default: durationSuffix = "="; break;
+         }
+
+         if (notes[i].tieForward)
+             tieSuffix = "~"; // vb
+
+         const finalNoteRepresentation = tiePrefix + durationPrefix + octavePrefix + name + durationSuffix + tieSuffix;
          text.text = finalNoteRepresentation;
 
          // octave, middle C being C4
