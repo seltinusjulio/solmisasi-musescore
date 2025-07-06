@@ -82,10 +82,13 @@ The forward slash (`/`) indicates "naik setengah" (raised by a semitone), while 
 
 ## Technical Details
 
-- **Plugin Version**: 1.0
+- **Plugin Version**: 1.2
 - **Compatibility**: MuseScore 3.x and 4.x
 - **Font Size**: Grace notes are displayed at 70% of normal font size
 - **Placement**: Notes in voices 1 and 3 are placed below the staff, others above
+
+## Update Notes
+For detailed update notes, please heading to: https://github.com/seltinusjulio/solmisasi-musescore/blob/main/update-notes.md
 
 ## Octave Mapping
 
