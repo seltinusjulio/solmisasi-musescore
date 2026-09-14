@@ -21,7 +21,7 @@
 //=============================================================================
 
 import QtQuick 2.2
-import MuseScore 3.0
+import MuseScore 4.0
 
 MuseScore {
    version: "1.2"
