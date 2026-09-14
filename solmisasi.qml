@@ -76,11 +76,16 @@ MuseScore {
       return scaleDegree;
    }
 
-   // Detect if note is accidental (not in key signature)
-   function isAccidental(midiPitch, keySignature) {
+   // Calculate chromatic interval from key tonic
+   function getAccidentalInterval(midiPitch, keySignature) {
       var pitchClass = midiPitchToPitchClass(midiPitch);
       var keyTonic = getKeyTonicPitchClass(keySignature);
-      var interval = (pitchClass - keyTonic + 12) % 12;
+      return (pitchClass - keyTonic + 12) % 12;
+   }
+
+   // Detect if note is accidental (not in key signature)
+   function isAccidental(midiPitch, keySignature) {
+      var interval = getAccidentalInterval(midiPitch, keySignature);
       var solmisasiMap = [1, 0, 2, 0, 3, 4, 0, 5, 0, 6, 0, 7];
       return solmisasiMap[interval] === 0;
    }
@@ -98,28 +103,25 @@ MuseScore {
 
    function nameChord (notes, text, small, keySignature) {
       keySignature = typeof keySignature !== 'undefined' ? keySignature : 0;
-      var sep = "\n";   // change to "," if you want them horizontally (anybody?)
-      // var oct = "";
-      var name;
-      for (var i = 0; i < notes.length; i++) {
+      const sep = "\n";   // change to "," if you want them horizontally (anybody?)
+      let name = "";
+      for (let i = 0; i < notes.length; i++) {
          if (!notes[i].visible)
             continue // skip invisible notes
          if (text.text) // only if text isn't empty
             text.text = sep + text.text;
          if (small)
             text.fontSize *= fontSizeMini
-         if (typeof notes[i].tpc === "undefined") // like for grace notes ?!?
+         if (typeof notes[i].tpc === "undefined" || typeof notes[i].pitch === "undefined")
             return
 
          // Get solmisasi number (1-7) based on key signature
-         var scaleDegree = pitchToSolmisasi(notes[i].pitch, keySignature);
+         let scaleDegree = pitchToSolmisasi(notes[i].pitch, keySignature);
          name = String(scaleDegree);
 
          // Add accidental marker for notes outside the key signature
          if (isAccidental(notes[i].pitch, keySignature)) {
-            var pitchClass = midiPitchToPitchClass(notes[i].pitch);
-            var keyTonic = getKeyTonicPitchClass(keySignature);
-            var interval = (pitchClass - keyTonic + 12) % 12;
+            let interval = getAccidentalInterval(notes[i].pitch, keySignature);
 
             // Determine if it's a sharp or flat accidental
             if (interval === 1 || interval === 3 || interval === 6 || interval === 8 || interval === 10) {
