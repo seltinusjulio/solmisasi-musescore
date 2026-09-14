@@ -32,6 +32,58 @@ MuseScore {
    property real fontSizeMini: 0.7;
 
    id: noteNames
+
+   // TPC (Tonal Pitch Class) to pitch class (0-11) mapping
+   // TPC: -7 to 33 maps to chromatic note classes
+   function tpcToPitchClass(tpc) {
+      var normalized = ((tpc + 1) % 12 + 12) % 12;
+      return normalized;
+   }
+
+   // Get key tonic pitch class from key signature
+   function getKeyTonicPitchClass(keySignature) {
+      // keySignature: circle of fifths position (-7 to +7)
+      // -7=Cb, -6=Gb, -5=Db, -4=Ab, -3=Eb, -2=Bb, -1=F, 0=C,
+      // +1=G, +2=D, +3=A, +4=E, +5=B, +6=F#, +7=C#
+      var keyTonicMap = [11, 5, 10, 3, 8, 1, 6, 0, 7, 2, 9, 4, 11, 6, 1];
+      return keyTonicMap[keySignature + 7];
+   }
+
+   // Convert TPC to solmisasi number (1-7) based on key signature
+   function tpcToSolmisasi(tpc, keySignature) {
+      var pitchClass = tpcToPitchClass(tpc);
+      var keyTonic = getKeyTonicPitchClass(keySignature);
+
+      // Calculate interval from key tonic
+      var interval = (pitchClass - keyTonic + 12) % 12;
+
+      // Map to solmisasi scale degree (1-7)
+      // Assuming diatonic scale: 0=1, 2=2, 4=3, 5=4, 7=5, 9=6, 11=7
+      var solmisasiMap = [1, 0, 2, 0, 3, 4, 0, 5, 0, 6, 0, 7];
+      var scaleDegree = solmisasiMap[interval];
+
+      // If scale degree is 0, note is chromatic accidental
+      if (scaleDegree === 0) {
+         // Find nearest diatonic note for accidental handling
+         if (interval === 1) scaleDegree = 2; // C# / Db
+         else if (interval === 3) scaleDegree = 4; // D# / Eb
+         else if (interval === 6) scaleDegree = 5; // F# / Gb
+         else if (interval === 8) scaleDegree = 6; // G# / Ab
+         else if (interval === 10) scaleDegree = 7; // A# / Bb
+      }
+
+      return scaleDegree;
+   }
+
+   // Detect if note is accidental (not in key signature)
+   function isAccidental(tpc, keySignature) {
+      var pitchClass = tpcToPitchClass(tpc);
+      var keyTonic = getKeyTonicPitchClass(keySignature);
+      var interval = (pitchClass - keyTonic + 12) % 12;
+      var solmisasiMap = [1, 0, 2, 0, 3, 4, 0, 5, 0, 6, 0, 7];
+      return solmisasiMap[interval] === 0;
+   }
+
    //4.4 title: "Solmisasi"
    //4.4 categoryCode: "composing-arranging-tools"
    //4.4 thumbnailName: "solmisasi.png"
@@ -43,7 +95,8 @@ MuseScore {
       }
    }
 
-   function nameChord (notes, text, small) {
+   function nameChord (notes, text, small, keySignature) {
+      keySignature = typeof keySignature !== 'undefined' ? keySignature : 0;
       var sep = "\n";   // change to "," if you want them horizontally (anybody?)
       // var oct = "";
       var name;
@@ -56,48 +109,26 @@ MuseScore {
             text.fontSize *= fontSizeMini
          if (typeof notes[i].tpc === "undefined") // like for grace notes ?!?
             return
-         switch (notes[i].tpc) {
-            case -1: name = mscoreMajorVersion >= 4 ? qsTr("F♭♭") : qsTranslate("InspectorAmbitus", "3"); break;
-            case  0: name = mscoreMajorVersion >= 4 ? qsTr("C♭♭") : qsTranslate("InspectorAmbitus", "\\7"); break;
-            case  1: name = mscoreMajorVersion >= 4 ? qsTr("G♭♭") : qsTranslate("InspectorAmbitus", "4"); break;
-            case  2: name = mscoreMajorVersion >= 4 ? qsTr("D♭♭") : qsTranslate("InspectorAmbitus", "1"); break;
-            case  3: name = mscoreMajorVersion >= 4 ? qsTr("A♭♭") : qsTranslate("InspectorAmbitus", "5"); break;
-            case  4: name = mscoreMajorVersion >= 4 ? qsTr("E♭♭") : qsTranslate("InspectorAmbitus", "2"); break;
-            case  5: name = mscoreMajorVersion >= 4 ? qsTr("B♭♭") : qsTranslate("InspectorAmbitus", "6"); break;
 
-            case  6: name = mscoreMajorVersion >= 4 ? qsTr("F♭") : qsTranslate("InspectorAmbitus", "4"); break;
-            case  7: name = mscoreMajorVersion >= 4 ? qsTr("C♭") : qsTranslate("InspectorAmbitus", "7"); break;
-            case  8: name = mscoreMajorVersion >= 4 ? qsTr("G♭") : qsTranslate("InspectorAmbitus", "/4"); break;
-            case  9: name = qsTranslate(mscoreMajorVersion >= 4 ? "engraving/instruments:db-piccolo traitName" : "InspectorAmbitus", "/1"); break;
-            case 10: name = qsTranslate(mscoreMajorVersion >= 4 ? "EditPitchBase" : "InspectorAmbitus", "/5"); break;
-            case 11: name = qsTranslate(mscoreMajorVersion >= 4 ? "EditPitchBase" : "InspectorAmbitus", "/2"); break;
-            case 12: name = qsTranslate(mscoreMajorVersion >= 4 ? "EditPitchBase" : "InspectorAmbitus", "\\7"); break;
+         // Get solmisasi number (1-7) based on key signature
+         var scaleDegree = tpcToSolmisasi(notes[i].tpc, keySignature);
+         name = String(scaleDegree);
 
-            case 13: name = qsTranslate(mscoreMajorVersion >= 4 ? "global" : "InspectorAmbitus", "4"); break;
-            case 14: name = qsTranslate(mscoreMajorVersion >= 4 ? "global" : "InspectorAmbitus", "1"); break;
-            case 15: name = qsTranslate(mscoreMajorVersion >= 4 ? "global" : "InspectorAmbitus", "5"); break;
-            case 16: name = qsTranslate(mscoreMajorVersion >= 4 ? "global" : "InspectorAmbitus", "2"); break;
-            case 17: name = qsTranslate(mscoreMajorVersion >= 4 ? "global" : "InspectorAmbitus", "6"); break;
-            case 18: name = qsTranslate(mscoreMajorVersion >= 4 ? "global" : "InspectorAmbitus", "3"); break;
-            case 19: name = qsTranslate(mscoreMajorVersion >= 4 ? "global" : "InspectorAmbitus", "7"); break;
+         // Add accidental marker for notes outside the key signature
+         if (isAccidental(notes[i].tpc, keySignature)) {
+            var pitchClass = tpcToPitchClass(notes[i].tpc);
+            var keyTonic = getKeyTonicPitchClass(keySignature);
+            var interval = (pitchClass - keyTonic + 12) % 12;
 
-            case 20: name = qsTranslate(mscoreMajorVersion >= 4 ? "global" : "InspectorAmbitus", "/4"); break;
-            case 21: name = qsTranslate(mscoreMajorVersion >= 4 ? "global" : "InspectorAmbitus", "/1"); break;
-            case 22: name = qsTranslate(mscoreMajorVersion >= 4 ? "global" : "InspectorAmbitus", "/5"); break;
-            case 23: name = qsTranslate(mscoreMajorVersion >= 4 ? "global" : "InspectorAmbitus", "/2"); break;
-            case 24: name = qsTranslate(mscoreMajorVersion >= 4 ? "global" : "InspectorAmbitus", "\\7"); break;
-            case 25: name = mscoreMajorVersion >= 4 ? qsTr("E♯") : qsTranslate("InspectorAmbitus", "4"); break;
-            case 26: name = mscoreMajorVersion >= 4 ? qsTr("B♯") : qsTranslate("InspectorAmbitus", "!"); break;
-
-            case 27: name = mscoreMajorVersion >= 4 ? qsTr("F♯♯") : qsTranslate("InspectorAmbitus", "5"); break;
-            case 28: name = mscoreMajorVersion >= 4 ? qsTr("C♯♯") : qsTranslate("InspectorAmbitus", "2"); break;
-            case 29: name = mscoreMajorVersion >= 4 ? qsTr("G♯♯") : qsTranslate("InspectorAmbitus", "6"); break;
-            case 30: name = mscoreMajorVersion >= 4 ? qsTr("D♯♯") : qsTranslate("InspectorAmbitus", "3"); break;
-            case 31: name = mscoreMajorVersion >= 4 ? qsTr("A♯♯") : qsTranslate("InspectorAmbitus", "7"); break;
-            case 32: name = mscoreMajorVersion >= 4 ? qsTr("E♯♯") : qsTranslate("InspectorAmbitus", "/4"); break;
-            case 33: name = mscoreMajorVersion >= 4 ? qsTr("B♯♯") : qsTranslate("InspectorAmbitus", "/1"); break;
-            default: name = qsTr("?")   + text.text; break;
-         } // end switch tpc
+            // Determine if it's a sharp or flat accidental
+            if (interval === 1 || interval === 3 || interval === 6 || interval === 8 || interval === 10) {
+               // Sharp accidentals (raised by semitone)
+               name = "/" + name;
+            } else {
+               // Flat accidentals (lowered by semitone)
+               name = "\\" + name;
+            }
+         }
 
          let octavePrefix = "";
          const currentPitch = notes[i].pitch;
@@ -190,14 +221,15 @@ MuseScore {
       }  // end for note
    }
 
-   function renderGraceNoteNames (cursor, list, text, small) {
+   function renderGraceNoteNames (cursor, list, text, small, keySignature) {
+      keySignature = typeof keySignature !== 'undefined' ? keySignature : 0;
       if (list.length > 0) {     // Check for existence.
          // Now render grace note's names...
          for (var chordNum = 0; chordNum < list.length; chordNum++) {
             // iterate through all grace chords
             var chord = list[chordNum];
             // Set note text, grace notes are shown a bit smaller
-            nameChord(chord.notes, text, small)
+            nameChord(chord.notes, text, small, keySignature)
             if (text.text)
                cursor.add(text)
             // X position the note name over the grace chord
@@ -253,6 +285,9 @@ MuseScore {
                cursor.rewind(Cursor.SCORE_START); // beginning of score
             while (cursor.segment && (fullScore || cursor.tick < endTick)) {
                if (cursor.element && cursor.element.type === Element.CHORD) {
+                  // Get key signature for current staff/tick
+                  var keySignature = curScore.keysig(cursor.tick, cursor.staffIdx);
+
                   var text = newElement(Element.STAFF_TEXT);      // Make a STAFF_TEXT
                   // text.placement = Placement.BELOW;
                   // text.y = 10;
@@ -276,11 +311,11 @@ MuseScore {
                   }
 
                   // Next process the leading grace notes, should they exist...
-                  text = renderGraceNoteNames(cursor, leadingLifo, text, true)
+                  text = renderGraceNoteNames(cursor, leadingLifo, text, true, keySignature)
 
                   // Now handle the note names on the main chord...
                   var notes = cursor.element.notes;
-                  nameChord(notes, text, false);
+                  nameChord(notes, text, false, keySignature);
                   if (text.text)
                      cursor.add(text);
 
@@ -292,7 +327,7 @@ MuseScore {
                      text = newElement(Element.STAFF_TEXT) // Make another STAFF_TEXT object
 
                   // Finally process trailing grace notes if they exist...
-                  text = renderGraceNoteNames(cursor, trailingFifo, text, true)
+                  text = renderGraceNoteNames(cursor, trailingFifo, text, true, keySignature)
                } // end if CHORD
                cursor.next();
             } // end while segment
