@@ -42,9 +42,11 @@ MuseScore {
    // Get key tonic pitch class from key signature
    function getKeyTonicPitchClass(keySignature) {
       // keySignature: circle of fifths position (-7 to +7)
-      // -7=Cb, -6=Gb, -5=Db, -4=Ab, -3=Eb, -2=Bb, -1=F, 0=C,
-      // +1=G, +2=D, +3=A, +4=E, +5=B, +6=F#, +7=C#
-      var keyTonicMap = [11, 5, 10, 3, 8, 1, 6, 0, 7, 2, 9, 4, 11, 6, 1];
+      // Pitch class mapping (C=0, C#=1, D=2, D#=3, E=4, F=5, F#=6, G=7, G#=8, A=9, A#=10, B=11)
+      // Index = keySignature + 7, so:
+      // -7(Cb)=11, -6(Gb)=6, -5(Db)=1, -4(Ab)=8, -3(Eb)=3, -2(Bb)=10, -1(F)=5, 0(C)=0,
+      // +1(G)=7, +2(D)=2, +3(A)=9, +4(E)=4, +5(B)=11, +6(F#)=6, +7(C#)=1
+      var keyTonicMap = [11, 6, 1, 8, 3, 10, 5, 0, 7, 2, 9, 4, 11, 6, 1];
       return keyTonicMap[keySignature + 7];
    }
 
