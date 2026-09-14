@@ -33,11 +33,10 @@ MuseScore {
 
    id: noteNames
 
-   // TPC (Tonal Pitch Class) to pitch class (0-11) mapping
-   // TPC: -7 to 33 maps to chromatic note classes
-   function tpcToPitchClass(tpc) {
-      var normalized = ((tpc + 1) % 12 + 12) % 12;
-      return normalized;
+   // Convert MIDI pitch to chromatic pitch class (0-11)
+   // MIDI 60 = C4 (middle C) = pitch class 0
+   function midiPitchToPitchClass(midiPitch) {
+      return midiPitch % 12;
    }
 
    // Get key tonic pitch class from key signature
@@ -49,9 +48,9 @@ MuseScore {
       return keyTonicMap[keySignature + 7];
    }
 
-   // Convert TPC to solmisasi number (1-7) based on key signature
-   function tpcToSolmisasi(tpc, keySignature) {
-      var pitchClass = tpcToPitchClass(tpc);
+   // Convert MIDI pitch to solmisasi number (1-7) based on key signature
+   function pitchToSolmisasi(midiPitch, keySignature) {
+      var pitchClass = midiPitchToPitchClass(midiPitch);
       var keyTonic = getKeyTonicPitchClass(keySignature);
 
       // Calculate interval from key tonic
@@ -76,8 +75,8 @@ MuseScore {
    }
 
    // Detect if note is accidental (not in key signature)
-   function isAccidental(tpc, keySignature) {
-      var pitchClass = tpcToPitchClass(tpc);
+   function isAccidental(midiPitch, keySignature) {
+      var pitchClass = midiPitchToPitchClass(midiPitch);
       var keyTonic = getKeyTonicPitchClass(keySignature);
       var interval = (pitchClass - keyTonic + 12) % 12;
       var solmisasiMap = [1, 0, 2, 0, 3, 4, 0, 5, 0, 6, 0, 7];
@@ -111,12 +110,12 @@ MuseScore {
             return
 
          // Get solmisasi number (1-7) based on key signature
-         var scaleDegree = tpcToSolmisasi(notes[i].tpc, keySignature);
+         var scaleDegree = pitchToSolmisasi(notes[i].pitch, keySignature);
          name = String(scaleDegree);
 
          // Add accidental marker for notes outside the key signature
-         if (isAccidental(notes[i].tpc, keySignature)) {
-            var pitchClass = tpcToPitchClass(notes[i].tpc);
+         if (isAccidental(notes[i].pitch, keySignature)) {
+            var pitchClass = midiPitchToPitchClass(notes[i].pitch);
             var keyTonic = getKeyTonicPitchClass(keySignature);
             var interval = (pitchClass - keyTonic + 12) % 12;
 
